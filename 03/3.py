@@ -30,8 +30,8 @@ for indiceLinha, linha in enumerate(linhas):
 							contemCaracterAoRedor = True
 							if caracterAVerificar == '*': # Salva para a segunda parte.
 								chave = (idy, idx)
-								coordenadasDestaEngrenagem = engrenagens.get(chave, set())
-								coordenadasDestaEngrenagem.add(int(numero))
+								coordenadasDestaEngrenagem = engrenagens.get(chave, tuple())
+								coordenadasDestaEngrenagem += (int(numero),)
 								engrenagens[chave] = coordenadasDestaEngrenagem
 				if contemCaracterAoRedor:
 					resposta += int(numero)
