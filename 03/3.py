@@ -6,7 +6,7 @@ with open('input.txt') as file:
 	linhas = file.read().splitlines()
 
 resposta = 0
-coordenadasNumeros = {} # Mapa utilizado para a segunda parte.
+engrenagens = {} # Dicionário que associa uma engrenagem a um conjunto de números em contato.
 for indiceLinha, linha in enumerate(linhas):
 	numero = ''
 	menorIndiceComNumero = 0
@@ -17,7 +17,6 @@ for indiceLinha, linha in enumerate(linhas):
 			numero += caracter
 		else:
 			if numero:
-				coordenadasNumeros[(indiceLinha, menorIndiceComNumero)] = int(numero)
 				contemCaracterAoRedor = False 
 				# Verificar as coordenadas adjacentes:
 				for idx in range(menorIndiceComNumero - 1, indiceCaracter + 1):
@@ -29,25 +28,21 @@ for indiceLinha, linha in enumerate(linhas):
 						caracterAVerificar = linhas[idy][idx]
 						if (not caracterAVerificar.isdigit()) and caracterAVerificar != '.':
 							contemCaracterAoRedor = True
+							if caracterAVerificar == '*': # Salva para a segunda parte.
+								chave = (idy, idx)
+								coordenadasDestaEngrenagem = engrenagens.get(chave, set())
+								coordenadasDestaEngrenagem.add(int(numero))
+								engrenagens[chave] = coordenadasDestaEngrenagem
 				if contemCaracterAoRedor:
 					resposta += int(numero)
 			numero = ''
 # Parte 2:
 respostaParte2 = 0
-for indiceLinha, linha in enumerate(linhas):
-	for indiceCaracter, caracter in enumerate(linha):
-		if caracter == '*':
-			multiplicacao = 1
-			quantidadeDeNumerosConectados = 0
-			for coordenadasDoNumero, numero in coordenadasNumeros.items():
-				rangeLinhasDesteNumero = (coordenadasDoNumero[0] - 1, coordenadasDoNumero[0] + 2)
-				rangeCaracteresDesteNumero = (coordenadasDoNumero[1] - 1, 
-								coordenadasDoNumero[1] + len(str(numero)) + 1)
-				if (indiceLinha in range(*rangeLinhasDesteNumero) and
-					indiceCaracter in range(*rangeCaracteresDesteNumero)):
-					multiplicacao *= numero
-					quantidadeDeNumerosConectados += 1
-			if quantidadeDeNumerosConectados == 2:
-				respostaParte2+= multiplicacao
+for conjuntoNumeros in engrenagens.values(): # Realiza a multiplicação das engrenagens em contato com dois números.
+	if len(conjuntoNumeros) == 2:
+		multiplicacao = 1
+		for numero in conjuntoNumeros:
+			multiplicacao *= numero
+		respostaParte2 += multiplicacao
 print('A soma do número das partes é:', resposta)
 print('A soma das razões das engrenagens é:', respostaParte2)
