@@ -1,12 +1,13 @@
 # Desafio do dia 05/12/2023:
 # a) Receber uma lista de funções lineares e seus intervalos, e um conjunto de números iniciais. Calcular o valor quando todos os números são passados por todas as funções.
-# b)
+# b) O conjunto de números iniciais na verdade são intervalos e portanto bem maior. Calcular o mesmo valor.
 
 with open('input.txt') as file:
 	linhas = file.read().split('\n\n')
 	sementes = linhas[0].split(': ')[1].split()
 	sementes = list(map(int, sementes))
-mapaConversoes = {}
+
+mapaConversoes = {} # Mapa que associa cada nível a suas conversões da forma: {('agua', 'solo'): ((12,34,56),...)}
 for informacoesConversao in linhas[1:]:
 	linhasConversao = informacoesConversao.splitlines()
 	origem, destino = linhasConversao[0].split()[0].split('-to-')
@@ -17,168 +18,87 @@ for informacoesConversao in linhas[1:]:
 		conversoesDesteCaminho.append(valores)
 	mapaConversoes[caminho] = tuple(conversoesDesteCaminho)
 
-def percorrerConversoes(semente):
+def percorrerConversoes(semente): # Função da parte 1 que passa uma semente por todas as etapas e retorna a posição final.
 	estadoAtual = 'seed'
 	localAtual = semente 
-	while (estadoAtual != 'location'):
-		destino = [caminho[1] for caminho in mapaConversoes if caminho[0] == estadoAtual][0]
+	while (estadoAtual != 'location'): # Cada iteração deve avançar uma etapa.
+		destino = [caminho[1] for caminho in mapaConversoes if caminho[0] == estadoAtual][0] # Presume que só existe uma conversão disponivel para cada etapa.
 		conversoes = mapaConversoes[(estadoAtual, destino)]
-		for conversao in conversoes:
+		for conversao in conversoes: # Para cada conversão, verificar se esta semente se encaixa nela.
 			comecoDestino, comecoOrigem, comprimento = conversao
-			#if localAtual in range(comecoOrigem, comecoOrigem + comprimento):
-			if localAtual >= comecoOrigem and localAtual <comecoOrigem + comprimento:
+			if localAtual >= comecoOrigem and localAtual <= comecoOrigem + comprimento: # Poderia ser usado in range(a, b).
 				localAtual = comecoDestino + (localAtual - comecoOrigem)
-				break
-		estadoAtual = destino
+				break # Cada número só deve passar por uma conversão por etapa.
+		estadoAtual = destino # Avança uma etapa.
 	return localAtual
 
 locaisSementes = []
 for semente in sementes:
 	localAtual = percorrerConversoes(semente)
 	locaisSementes.append(localAtual)
-print(min(locaisSementes))
+print('A menor localização possível referente às sementes iniciais é:', min(locaisSementes))
 
 # Parte 2:
-intervalosATestar = []
-
-for indiceInformacoesSementes in range(int(len(sementes)/2)):
+intervalosATestar = [] # Lista com os intervalos a se testar. Deve ser atualizada a cada etapa.
+for indiceInformacoesSementes in range(int(len(sementes)/2)): # Reinterpreta a linha inicial para montar os intervalos de sementes.
 	indice = indiceInformacoesSementes * 2
 	inicioIntervalo = sementes[indice]
 	comprimentoIntervalo = sementes[indice + 1]
 	intervalosATestar.append((inicioIntervalo, inicioIntervalo+comprimentoIntervalo))
 	
 estadoAtual = 'seed'
-while estadoAtual != 'location':
-	#Preciso quebrar os intervalos a testar:
-	destino = [caminho[1] for caminho in mapaConversoes if caminho[0] == estadoAtual][0]
+while estadoAtual != 'location': # Para cada etapa:
+	destino = [caminho[1] for caminho in mapaConversoes if caminho[0] == estadoAtual][0] # Obtem o nome da próxima etapa e suas conversões.
 	conversoes = mapaConversoes[(estadoAtual, destino)]
-	for conversao in conversoes: # Para cada conversão, quebrar os intervalos a testar que são afetados por ela:
+
+	# 1) Um intervalo pode sobrepor em parte com uma linha conversão.
+	# Neste caso, quebrar os intervalos a se testar afetados:
+	for conversao in conversoes:
 		comecoDestino, comecoOrigem, comprimento = conversao
 		fimOrigem = comecoOrigem + comprimento
-#		print('Fazendo conversao:', comecoOrigem, fimOrigem)
-		for intervalo in intervalosATestar.copy():
-			quebrouComeco = False
+		for intervalo in intervalosATestar.copy(): # Copiar para não alterar o que se está iterando.
+			quebrouComeco = False # Variaveis que definem se houve uma quebra de intervalo para o começo ou fim de uma conversão.
 			quebrouFim = False
-			if comecoOrigem >= intervalo[0] and comecoOrigem <= intervalo[1]:
-#				print('Quebrou Comeco!')
-				quebrouComeco = True
-				intervalosATestar.append((intervalo[0], comecoOrigem - 1))
-				intervalosATestar.append((comecoOrigem, intervalo[1]))
-			if fimOrigem >= intervalo[0] and fimOrigem <= intervalo[1]:
-				
-#				print('Quebrou fim!')
-				quebrouFim = True
-				if quebrouComeco:
-					intervalosATestar.remove((comecoOrigem, intervalo[1]))
-					intervalosATestar.append((comecoOrigem, fimOrigem))
-					intervalosATestar.append((fimOrigem + 1, intervalo[1]))
-				else:
-					intervalosATestar.append((intervalo[0], fimOrigem))
-					intervalosATestar.append((fimOrigem + 1, intervalo[1]))
-			if quebrouComeco or quebrouFim:
-				intervalosATestar.remove(intervalo)
-#	print(intervalosATestar) #Ainda preciso testar isso?
-#	input()
-	novosIntervalos = [] # No final vou substituir esse antes de passar para o próximo nivel.
 
-	for comecoIntervalo, fimIntervalo in intervalosATestar: #Pega cada 
-		novoComeco = novoFim = None
-		for conversao in conversoes:
+			# O lado da conversão faz diferença na hora da quebra para saber em qual lado vai ficar o número central.
+			if comecoOrigem >= intervalo[0] and comecoOrigem <= intervalo[1]: # O começo da conversão cai dentro de um intervalo.
+				quebrouComeco = True # Quebra o intervalo em 2:
+				intervalosATestar.append((intervalo[0], comecoOrigem - 1)) # Do começo até o começo da conversão,
+				intervalosATestar.append((comecoOrigem, intervalo[1])) # E do começo da conversão até o final.
+			# Idem para o final da conversão:
+			if fimOrigem >= intervalo[0] and fimOrigem <= intervalo[1]: # O fim da conversão cai dentro de um intervalo.
+				quebrouFim = True
+				if quebrouComeco: # Neste caso, os dois lados da conversão estão contidos dentro do intervalo. Deve ser quebrado em 3.
+					intervalosATestar.remove((comecoOrigem, intervalo[1])) # Remove o intervalo criado acima, e adiciona:
+					intervalosATestar.append((comecoOrigem, fimOrigem)) # Do começo da quebra anterior até o fim da conversão,
+					intervalosATestar.append((fimOrigem + 1, intervalo[1])) # E do fim da conversão até o fim do intervalo.
+				else: # Significa que apenas o final da conversão cai dentro de um intervalo. Adicionar:
+					intervalosATestar.append((intervalo[0], fimOrigem)) # Do começo do intervalo até o final da conversão,
+					intervalosATestar.append((fimOrigem + 1, intervalo[1])) # E do final da conversão até o final do intervalo.
+
+			if quebrouComeco or quebrouFim: # Se houve alguma quebra, o intervalo antigo não deve ser considerado.
+				intervalosATestar.remove(intervalo)
+
+
+	# 2) Com os intervalos quebrados corretamente, tenho a certeza que cada um usa apenas uma conversão.
+	# Pra cada intervalo a ser testado, passar ele pela sua conversão e anotar a nova faixa de intervalos, que vai ser o começo da próxima etapa.
+	novosIntervalos = [] 
+	for comecoIntervalo, fimIntervalo in intervalosATestar: # Como cada intervalo só usa uma conversão, apenas as extremidades precisam ser convertidas.
+		novoComeco = comecoIntervalo # Novas extremidades. Devem ficar iguais caso não estejam no escopo de nenhuma conversão.
+		novoFim = fimIntervalo
+		for conversao in conversoes: 
 			comecoDestino, comecoOrigem, comprimento = conversao
-			if comecoIntervalo >= comecoOrigem and comecoIntervalo <= comecoOrigem + comprimento:
+			if comecoIntervalo >= comecoOrigem and comecoIntervalo <= comecoOrigem + comprimento: # Converte o começo do intervalo.
 				novoComeco = comecoDestino + (comecoIntervalo - comecoOrigem)
 				break
 
-		for conversao in conversoes:
+		for conversao in conversoes: # Poderia ser feito junto com o for acima, mas precisaria de um controle para não converter o mesmo lado múltiplas vezes. 
 			comecoDestino, comecoOrigem, comprimento = conversao
-			if fimIntervalo >= comecoOrigem and fimIntervalo <= comecoOrigem + comprimento:
+			if fimIntervalo >= comecoOrigem and fimIntervalo <= comecoOrigem + comprimento: # Converte o fim do intervalo.
 				novoFim = comecoDestino + (fimIntervalo - comecoOrigem)
 				break
-		novosIntervalos.append((novoComeco if novoComeco else comecoIntervalo, novoFim if novoFim else fimIntervalo))
-#	print('Acabou, novosIntervalos,', novosIntervalos)
-#	print(destino)
-#	input()
-	intervalosATestar = novosIntervalos
-	estadoAtual = destino
+		novosIntervalos.append((novoComeco, novoFim))
+	intervalosATestar = novosIntervalos # Sobrescreve os intervalos a testar para a próxima etapa.
+	estadoAtual = destino # Atualiza a etapa.
 
-print(min(intervalosATestar)[0])	
-#	sementesATestar.append(inicioIntervalo + comprimentoIntervalo)
-#	print(sementesATestar)
-
-#Tentativa: Testar só as seeds de cada intervalo.
-#sementesATestar = []
-#estadoAtual = 'seed'
-#for indiceInformacoesSementes in range(int(len(sementes)/2)):
-#	indice = indiceInformacoesSementes * 2
-#	inicioIntervalo = sementes[indice]
-#	comprimentoIntervalo = sementes[indice + 1]
-#	sementesATestar.append(inicioIntervalo)
-#	sementesATestar.append(inicioIntervalo + comprimentoIntervalo)
-#	print(sementesATestar)
-
-
-
-
-
-
-
-
-
-
-
-
-
-#extremidades = set()
-#for caminho, conversoes in mapaConversoes.items():
-#	for comecoDestino, comecoOrigem, comprimento in conversoes:
-#		extremidades.add(comecoDestino)
-#		extremidades.add(comecoOrigem)
-#		extremidades.add(comecoDestino + comprimento)
-#		extremidades.add(comecoDestino + comprimento)
-#for indiceInformacoesSementes in range(int(len(sementes)/2)):
-#	indice = indiceInformacoesSementes * 2
-#	inicioIntervalo = sementes[indice]
-#	comprimentoIntervalo = sementes[indice + 1]
-#	extremidades.add(inicioIntervalo)
-#	extremidades.add(inicioIntervalo + comprimentoIntervalo)
-#extremidades = list(extremidades)
-#extremidades.sort()
-#dicionarioExtremidades = {extremidade: indice for indice, extremidade in enumerate(extremidades)}
-#
-#print(dicionarioExtremidades)
-#
-#locaisSementes = []
-#for indiceInformacoesSementes in range(int(len(sementes)/2)):
-#	indice = indiceInformacoesSementes * 2
-#	inicioIntervalo = dicionarioExtremidades[sementes[indice]]
-#	fimIntervalo = sementes[indice] + sementes[indice+1]
-#	fimIntervalo = dicionarioExtremidades[fimIntervalo]
-#	print(inicioIntervalo, fimIntervalo)
-#	for semente in range(inicioIntervalo, fimIntervalo + 1):
-#		estadoAtual = 'seed'
-#		localAtual = semente 
-#		while (estadoAtual != 'location'):
-#			destino = [caminho[1] for caminho in mapaConversoes if caminho[0] == estadoAtual][0]
-#			conversoes = mapaConversoes[(estadoAtual, destino)]
-#			for conversao in conversoes:
-#				comecoDestino, comecoOrigem, comprimento = conversao
-#				fimDestino = comecoDestino + comprimento
-#				fimOrigem = comecoOrigem + comprimento
-#
-#				comecoDestino = dicionarioExtremidades[comecoDestino]
-#				fimDestino = dicionarioExtremidades[fimDestino]
-#
-#				comecoOrigem = dicionarioExtremidades[comecoOrigem]
-#				fimOrigem = dicionarioExtremidades[fimOrigem]
-#
-#				if localAtual in range(comecoOrigem, fimOrigem + 1):
-#					print(localAtual)
-#					localAtual = comecoDestino + (localAtual - comecoOrigem)
-#					print(localAtual)
-#					print(extremidades[localAtual])
-#					input()
-#					break
-#			estadoAtual = destino
-#		locaisSementes.append(localAtual)
-#print(min(locaisSementes))
-#
+print('Com os intervalos de sementes, a menor localização possível é:', min(intervalosATestar)[0])
