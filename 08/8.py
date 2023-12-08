@@ -29,25 +29,25 @@ print('A quantidade de passos necessária para chegar ao fim é:', quantidadeDeP
 
 # Parte 2:
 salasIniciais = [sala for sala in caminhos if sala.endswith('A')]
-conjuntosCaminhos = {sala: set() for sala in salasIniciais} # Conjunto para detectar repetição, i.e. se uma mesma sala foi atingida com o mesmo índice de instrução.
-intervalos = [] # Lista para calcular o MMC.
-for sala, conjunto in conjuntosCaminhos.items():
+intervalos = [] # Lista das quantidades de instruções necessarias para encontrar cada 'Z'. Usada para calcular o MMC.
+for sala in salasIniciais:
+	conjunto = set() # Conjunto para detectar repetição, i.e. se uma mesma sala foi atingida com o mesmo índice de instrução.
 	salaAtual = sala
 	indiceInstrucaoAtual = 0
 	quantidadeDePassos = 0
 	while (salaAtual, indiceInstrucaoAtual) not in conjunto:
-	# Se uma mesma sala foi atingida com o mesmo índice de instrução, é um ciclo e não precisa percorrer mais.
+	# Se uma mesma sala foi atingida com o mesmo índice de instrução, é um ciclo e não é necessário percorrer mais.
 		conjunto.add((salaAtual, indiceInstrucaoAtual))
 		instrucao = instrucoes[indiceInstrucaoAtual]
 		proximaSala = caminhos[salaAtual][instrucao]
 		salaAtual = proximaSala
 		indiceInstrucaoAtual = (indiceInstrucaoAtual + 1) % len(instrucoes)
 		quantidadeDePassos += 1
-		# Essa solução presume duas coisas, que não são necessariamente verdade em um input genérico:
+		# Essa solução presume duas coisas que não são necessariamente verdade em um input genérico:
 		# 1) Que cada sala terminando em 'A', vê, ao percorrer seu caminho, apenas uma sala de final 'Z'.
 		# 2) Que não exista um intervalo inicial antes de entrar no ciclo: 
-		# i.e. A sala "ABZ" ocorre nos passos 100, 200, 300... (ao invés de 50,150,250...)
-		# Se fosse o caso, seria necessário aplicar aritmética modular.
+		# i.e. Uma sala de final 'Z' ocorre nos passos X, 2X, 3X... (ao invés de a+X, a+2X, a+3X...)
+		# Sendo o caso dos pontos acima, seria necessário aplicar aritmética modular para todas as combinações de salas Z encontradas.
 		if salaAtual.endswith('Z'): 
 			intervalos.append(quantidadeDePassos)
 
