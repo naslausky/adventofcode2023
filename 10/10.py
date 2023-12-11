@@ -56,9 +56,9 @@ for dx, dy in laterais: # Como não sabemos como a coordenada inicial está cone
 # Parte 2:
 maiorX = max([x for x, _ in mapa]) + 1
 maiorY = max([y for _, y in mapa]) + 1
-
 areaTotal = 0
 parCurvas = {'F':'7','L':'J'} # Mapa que relaciona cada "esquina" com a sua simétrica horizontalmente.
+areaInterna = set()
 for indiceLinha in range(0, maiorY):
 	estaDentroDaArea = False # Para cada linha vertical que passamos, alternamos se estamos dentro ou fora do circuito.
 	ultimoCaracterCurvo = '' # Para saber se um 'J' ou um '7' devem alternar o nosso estado, precisamos saber a curva anterior. 
@@ -74,6 +74,20 @@ for indiceLinha in range(0, maiorY):
 			elif caracter == '|':
 				estaDentroDaArea = not estaDentroDaArea
 		elif estaDentroDaArea:
+			areaInterna.add((indiceCaracter, indiceLinha))
 			areaTotal+= 1
 print('A área interna do circuito encontrado é:', areaTotal)
-
+exit()
+# Função de depuração para imprimir o mapa e as coordenadas encontradas:
+apresentacao = {'7':'┓', 'L':'┗','J':'┛', 'F':'┏',}
+for indiceLinha in range(0, maiorY):
+	for indiceCaracter in range(0, maiorX):
+		coordenada = (indiceCaracter, indiceLinha)
+		caracter = apresentacao[mapa[coordenada]] if mapa[coordenada] in apresentacao else mapa[coordenada]
+		if coordenada in caminhoPercorrido:
+			print('\033[91m' + caracter + '\033[0m', end = '')
+		elif coordenada in areaInterna:
+			print('\033[94m' + caracter + '\033[0m', end = '')
+		else:
+			print(caracter, end = '')
+	print('\n')
