@@ -37,13 +37,17 @@ def moverEsferasEmUmaDirecao(esferas, direcao): # Função que recebe um conjunt
 		coordenadasARemover = set()
 		coordenadasAAdicionar = set()
 		for esfera in esferas:
-			proximaCoordenada = (esfera[0] + direcao[0], esfera[1] + direcao[1])
-			if (proximaCoordenada[0] not in range(numeroDeLinhas) 
-				or proximaCoordenada[1] not in range(numeroDeColunas)):
-				continue
-			if proximaCoordenada not in esferas and proximaCoordenada not in paredes: # Pode mover.
+			coordenadaAtual = esfera
+			proximaCoordenada = (coordenadaAtual[0] + direcao[0], coordenadaAtual[1] + direcao[1])	
+			while (proximaCoordenada[0] in range(numeroDeLinhas) 
+					and proximaCoordenada[1] in range(numeroDeColunas)
+					and proximaCoordenada not in esferas
+					and proximaCoordenada not in paredes):
+					coordenadaAtual = proximaCoordenada
+					proximaCoordenada = (coordenadaAtual[0] + direcao[0], coordenadaAtual[1] + direcao[1])
+			if coordenadaAtual != esfera:
 				coordenadasARemover.add(esfera)
-				coordenadasAAdicionar.add(proximaCoordenada)
+				coordenadasAAdicionar.add(coordenadaAtual)
 				algumaEsferaMoveu = True
 		esferas-= coordenadasARemover
 		esferas.update(coordenadasAAdicionar)
