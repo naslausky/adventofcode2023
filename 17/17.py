@@ -1,3 +1,4 @@
+import queue
 with open('input.txt') as file:
 	linhas = file.read().splitlines()
 
@@ -11,6 +12,7 @@ norte = (-1, 0)
 sul = (1, 0)
 oeste = (0, -1)
 leste = (0, 1)
+
 def h(x):
 	return x[0][0]+x[0][1]
 
@@ -19,14 +21,13 @@ coordenadaFinal = (len(linhas) - 1, len(linhas[-1]) - 1)
 
 vistos = set()
 alcancaveis = {((0,0), None, 0): 0} # Dicionário que relaciona uma coordenada a sua distância mínima.
-
+pq = queue.PriorityQueue()
+pq.put((0, ((0,0), None, 0)))
 coordenadasFinais = set((coordenadaFinal, direcao, n+1) for n in range(3) for direcao in (sul, leste))
 
 while not coordenadasFinais.issubset(vistos) and len(vistos) != len(alcancaveis):
-	alcancaveisNaoVistos = {local: distancia for local, distancia in alcancaveis.items() if local not in vistos}
-	chave = min(alcancaveisNaoVistos, key = lambda x: (alcancaveisNaoVistos.get(x) + h(x)))
-	#print('Fazendo:', chave[0])
-	distanciaAteAqui = alcancaveisNaoVistos[chave] 
+	chave = pq.get()[1]
+	distanciaAteAqui = alcancaveis[chave] 
 	coordenada, origem, quantidade = chave 
 	proximasDirecoesPossiveis = [direcao for direcao in direcoesOpostas if direcao != direcoesOpostas.get(origem, None)]
 
@@ -44,10 +45,15 @@ while not coordenadasFinais.issubset(vistos) and len(vistos) != len(alcancaveis)
 			if proximaChave in alcancaveis:
 				if alcancaveis[proximaChave] > distanciaNoProximo: 
 					alcancaveis[proximaChave] = distanciaNoProximo
+					pq.put((
+								distanciaNoProximo + h(proximaChave[0]),
+							 	proximaChave)
+							)
 			else:
 				alcancaveis[proximaChave] = distanciaNoProximo
-			
-	if chave in coordenadasFinais:
-		print('Aparentemente achou!', chave, alcancaveis[chave])
+				pq.put((
+							distanciaNoProximo + h(proximaChave),
+							proximaChave)
+						)
 	vistos.add(chave)
 print(min(alcancaveis[final] for final in coordenadasFinais if final in alcancaveis))
