@@ -1,56 +1,47 @@
+# Desafio do dia 18/12/2023:
+# a) Receber uma lista de movimentos e calcular a área interna deste polígono.
+# b) Ídem, porém para os movimentos com coordenadas bem maiores.
+
 with open('input.txt') as file:
 	instrucoes = file.read().splitlines()
 	
 deltaDirecoes = {'R':(0, 1), 'L':(0, -1), 'U': (-1, 0), 'D': (1, 0)}
-
 coordenadaAtual = (0,0)
-mapa = {coordenadaAtual}
+coordenadaAtualParte2 = coordenadaAtual
+listaVertices = [coordenadaAtual]
+listaVerticesParte2 = [coordenadaAtual]
+
+areaBorda = 0 # Área inicial cavada.
+areaBordaParte2 = 0
 for instrucao in instrucoes:
 	direcao, quantidade, cor = instrucao.split()
 	quantidade = int(quantidade)
-	#Parte 2:
-	#quantidade = int(cor[2:-2], 16)
-	#codigosDirecoes = {'0' : 'R', '1' : 'D', '2' : 'L', '3' : 'U'}
-	#direcao = codigosDirecoes[cor[-2]]
-	for _ in range(quantidade):
-		delta = deltaDirecoes[direcao]
-		coordenadaAtual = (coordenadaAtual[0] + delta[0], coordenadaAtual[1] + delta[1])
-		mapa.add(coordenadaAtual)
+	# Parte 2:
+	quantidadeParte2 = int(cor[2:-2], 16)
+	codigosDirecoes = {'0' : 'R', '1' : 'D', '2' : 'L', '3' : 'U'}
+	direcaoParte2 = codigosDirecoes[cor[-2]]
 
-# Achar uma coordenada que esteja dentro:
-coordenadaInterna = (None, None)
-menorLinha = min(mapa, key=lambda x:x[0])[0]
-maiorLinha = max(mapa, key=lambda x:x[0])[0]
-menorColuna = min(mapa, key=lambda x:x[1])[1]
-maiorColuna = max(mapa, key=lambda x:x[1])[1]
-for indiceLinha in range(menorLinha, maiorLinha + 1):
-	for indiceColuna in range(menorColuna, maiorColuna + 1):
-		coordenada = (indiceLinha, indiceColuna)
-		coordenadaNorte = (indiceLinha - 1, indiceColuna)
-		coordenadaSul = (indiceLinha + 1, indiceColuna)
-		if coordenada in mapa and coordenadaNorte in mapa and coordenadaSul in mapa:
-			coordenadaInterna = (indiceLinha, indiceColuna + 1)
-			break
-	else:
-		continue
-	break
+	delta = deltaDirecoes[direcao]
+	delta = (delta[0] * quantidade, delta[1] * quantidade)
+	areaBorda+=quantidade
+	coordenadaAtual = (coordenadaAtual[0] + delta[0], coordenadaAtual[1] + delta[1])
+	listaVertices.append(coordenadaAtual)
 
-def imprimirMapa():
-	for indiceLinha in range(menorLinha, maiorLinha + 1):
-		linha = ''.join('#' if (indiceLinha, indiceColuna) in mapa else ' ' 
-						for indiceColuna in range(menorColuna, maiorColuna + 1))
+	delta = deltaDirecoes[direcaoParte2]
+	delta = (delta[0] * quantidadeParte2, delta[1] * quantidadeParte2)
+	areaBordaParte2+=quantidadeParte2
+	coordenadaAtualParte2 = (coordenadaAtualParte2[0] + delta[0], coordenadaAtualParte2[1] + delta[1])
+	listaVerticesParte2.append(coordenadaAtualParte2)
+	
+def areaInterna(vertices): # Função que calcula a area interna de um polígono usando a fórmula do cadarço.
+	areaInterna = 0
+	for vertice1, vertice2 in zip(vertices[:-1], vertices[1:]):
+		x1, y1 = vertice1
+		x2, y2 = vertice2
+		areaInterna += (x1 * y2) - (x2 * y1)
+	return int(abs(areaInterna) / 2)
 
-def percorrerInterior(coordenadaInterna):
-	coordenadasAlcancaveis = {coordenadaInterna}
-	coordenadasVistas = set()
-	while coordenadasAlcancaveis:
-		coordenadaAtual = coordenadasAlcancaveis.pop()
-		for delta in deltaDirecoes.values():
-			proximaCoordenada =  (coordenadaAtual[0] + delta[0], coordenadaAtual[1] + delta[1])
-			if proximaCoordenada not in mapa and proximaCoordenada not in coordenadasVistas:
-				coordenadasAlcancaveis.add(proximaCoordenada)
-		coordenadasVistas.add(coordenadaAtual)
-	for novaCoordenada in coordenadasVistas:
-		mapa.add(novaCoordenada)
-percorrerInterior(coordenadaInterna)
-print(len(mapa))
+resposta = int(areaInterna(listaVertices) + areaBorda/2 + 1) # Quantidade de pontos internos pelo teorema de Pick.
+respostaParte2 = int(areaInterna(listaVerticesParte2) + areaBordaParte2/2 + 1)
+print('A área cavada é de:', resposta)
+print('A área cavada usando a segunda interpretação é de:', respostaParte2)
