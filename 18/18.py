@@ -4,14 +4,18 @@ with open('input.txt') as file:
 deltaDirecoes = {'R':(0, 1), 'L':(0, -1), 'U': (-1, 0), 'D': (1, 0)}
 
 coordenadaAtual = (0,0)
-mapa = {coordenadaAtual: None}
+mapa = {coordenadaAtual}
 for instrucao in instrucoes:
 	direcao, quantidade, cor = instrucao.split()
 	quantidade = int(quantidade)
+	#Parte 2:
+	#quantidade = int(cor[2:-2], 16)
+	#codigosDirecoes = {'0' : 'R', '1' : 'D', '2' : 'L', '3' : 'U'}
+	#direcao = codigosDirecoes[cor[-2]]
 	for _ in range(quantidade):
 		delta = deltaDirecoes[direcao]
 		coordenadaAtual = (coordenadaAtual[0] + delta[0], coordenadaAtual[1] + delta[1])
-		mapa[coordenadaAtual] = cor
+		mapa.add(coordenadaAtual)
 
 # Achar uma coordenada que esteja dentro:
 coordenadaInterna = (None, None)
@@ -47,7 +51,6 @@ def percorrerInterior(coordenadaInterna):
 				coordenadasAlcancaveis.add(proximaCoordenada)
 		coordenadasVistas.add(coordenadaAtual)
 	for novaCoordenada in coordenadasVistas:
-		mapa[novaCoordenada] = None
-print(len(mapa))
+		mapa.add(novaCoordenada)
 percorrerInterior(coordenadaInterna)
 print(len(mapa))
