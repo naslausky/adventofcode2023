@@ -23,12 +23,14 @@ for linha in linhas:
 	listaTijolos.append(setDestaPedra)
 	coordenadasOcupadas.update(setDestaPedra)
 
-def estacionarTijolos(listaTijolos, coordenadasOcupadas): # Função que recebe a lista e faz todos caírem até onde dá.  
+def estacionarTijolos(listaTijolos, coordenadasOcupadas, parte2 = False): # Função que recebe a lista e faz todos caírem até onde dá.  
 	caiuAlguma = True
 	indicesTijolosQueCairam = set() # Para contabilizar para a parte 2.
 	while caiuAlguma:
 		caiuAlguma = False
 		for indiceTijolo, tijolo in enumerate(listaTijolos): # Para um tijolo, ver se todas as coordenadas inferiores estão livres.
+			if parte2 and indiceTijolo in indicesTijolosQueCairam:
+				continue # Cada tijolo só precisa cair uma unidade para a parte 2.
 			temAlgoEmbaixo = False
 			conjuntoCaidoUmaUnidade = set()
 			for coordenada in tijolo:
@@ -80,5 +82,5 @@ for indiceBase, base in enumerate(tijolosBaseDeAlgum):
 	coordenadasOcupadasSemABase = copy.deepcopy(coordenadasOcupadas)
 	for coordenada in base:
 		coordenadasOcupadasSemABase.remove(coordenada)
-	resposta+= estacionarTijolos(listaSemABase, coordenadasOcupadasSemABase)
+	resposta+= estacionarTijolos(listaSemABase, coordenadasOcupadasSemABase, True)
 print('A soma da quantidade de reações em cadeia é de:', resposta)
