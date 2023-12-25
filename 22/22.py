@@ -22,48 +22,55 @@ for linha in linhas:
 	listaPedras.append(setDestaPedra)
 	coordenadasOcupadas.update(setDestaPedra)
 
-# Vai, pedra a pedra, vendo se alguma pode cair:
 
-caiuAlguma = True
-#[print(x) for x in listaPedras]
-#print('----------')
-#[print(x) for x in coordenadasOcupadas]
-#input()
-#print('listaPedras', listaPedras)
-#print()
-while caiuAlguma:
-	caiuAlguma = False
-	for conjuntoPedra in listaPedras:
-#		print('Fazendo pedra:', conjuntoPedra)
-		#input()
-		# Para essa pedra, vê se todos os bloquinhos tem algo embaixo:
-		temAlgoEmbaixo = False
-		conjuntoCaidoUmaUnidade = set()
-		for coordenada in conjuntoPedra:
-			z = coordenada[2]
-			coordenadaInferior = (coordenada[0], coordenada[1], z-1)
-#			print('\t coord inferior:', coordenadaInferior)
-			conjuntoCaidoUmaUnidade.add(coordenadaInferior)
-			if (coordenadaInferior in coordenadasOcupadas 
-			and coordenadaInferior not in conjuntoPedra) or (z == 1):
-#				print('\tOpa, tem algo embaixo, não pode mais descer.')
-				temAlgoEmbaixo = True
-				break
-		#print('Coordenada dessa após cair:', conjuntoCaidoUmaUnidade)
-		if temAlgoEmbaixo: # Não dá pra descer essa pedra, passa pra próxima
-			continue
-		
-		# Se chegou aqui é porque dá pra cair uma:
-		caiuAlguma = True
 
-		#Atualizar o coordenadasOcupadas
-		coordenadasOcupadas-= conjuntoPedra
-		coordenadasOcupadas.update(conjuntoCaidoUmaUnidade)
+def estacionarPedras(listaPedras, coordenadasOcupadas):
+	# Vai, pedra a pedra, vendo se alguma pode cair:
+	caiuAlguma = True
+	indicesTijolosQueCairam = set()
+	#[print(x) for x in listaPedras]
+	#print('----------')
+	#[print(x) for x in coordenadasOcupadas]
+	#input()
+	#print('listaPedras', listaPedras)
+	#print()
+	while caiuAlguma:
+		caiuAlguma = False
+		for indiceTijolo, conjuntoPedra in enumerate(listaPedras):
+	#		print('Fazendo pedra:', conjuntoPedra)
+			#input()
+			# Para essa pedra, vê se todos os bloquinhos tem algo embaixo:
+			temAlgoEmbaixo = False
+			conjuntoCaidoUmaUnidade = set()
+			for coordenada in conjuntoPedra:
+				z = coordenada[2]
+				coordenadaInferior = (coordenada[0], coordenada[1], z-1)
+	#			print('\t coord inferior:', coordenadaInferior)
+				conjuntoCaidoUmaUnidade.add(coordenadaInferior)
+				if (coordenadaInferior in coordenadasOcupadas 
+				and coordenadaInferior not in conjuntoPedra) or (z == 1):
+	#				print('\tOpa, tem algo embaixo, não pode mais descer.')
+					temAlgoEmbaixo = True
+					break
+			#print('Coordenada dessa após cair:', conjuntoCaidoUmaUnidade)
+			if temAlgoEmbaixo: # Não dá pra descer essa pedra, passa pra próxima
+				continue
+			
+			# Se chegou aqui é porque dá pra cair uma:
+			indicesTijolosQueCairam.add(indiceTijolo)
+			caiuAlguma = True
 
-		#Atualizar o conjuntoPedra:
-		conjuntoPedra.clear()
-		conjuntoPedra.update(conjuntoCaidoUmaUnidade)
-		#print('---------------------------------')
+			#Atualizar o coordenadasOcupadas
+			coordenadasOcupadas-= conjuntoPedra
+			coordenadasOcupadas.update(conjuntoCaidoUmaUnidade)
+
+			#Atualizar o conjuntoPedra:
+			conjuntoPedra.clear()
+			conjuntoPedra.update(conjuntoCaidoUmaUnidade)
+			#print('---------------------------------')
+	return len(indicesTijolosQueCairam)
+
+estacionarPedras(listaPedras, coordenadasOcupadas)
 #print('terminou')		
 #[print(x) for x in listaPedras]
 
@@ -106,5 +113,14 @@ print(len(listaPedras) - len(pedrasBaseDeAlguma))
 
 #parte 2:
 
-for base in pedrasBaseDeAlguma: # Remover essa e ver quantas caem.
-	print(base in copy.deepcopy(listaPedras))
+print('bases:', len(pedrasBaseDeAlguma))
+resposta = 0
+for indiceBase, base in enumerate(pedrasBaseDeAlguma): # Remover essa e ver quantas caem.
+	listaSemBase = [pedra for pedra in copy.deepcopy(listaPedras) if pedra != base]
+	coordenadasOcupadasSemBase = copy.deepcopy(coordenadasOcupadas)
+	for coordenada in base:
+		coordenadasOcupadasSemBase.remove(coordenada)
+	resposta+= estacionarPedras(listaSemBase, coordenadasOcupadasSemBase)
+	if indiceBase % 50 == 0:
+		print('Feita base:', indiceBase)
+print(resposta)
